@@ -1,0 +1,24 @@
+sudo: required
+language: generic
+
+services:
+  - docker
+
+before_install:
+  - docker build -t meir192/react-test3 -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true -t meir192/react-test3 npm test
+
+after_success:
+  - docker build -t meir192/multi-client3 ./client
+  - docker build -t meir192/multi-nginx3 ./nginx
+  - docker build -t meir192/multi-server3 ./server
+  - docker build -t meir192/multi-worker3 ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push meir192/multi-client3
+  - docker push meir192/multi-nginx3
+  - docker push meir192/multi-server3
+  - docker push meir192/multi-worker3
